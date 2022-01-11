@@ -4,10 +4,6 @@ project(BasicDeblur)
 
 find_package(OpenCV REQUIRED)
 
-configure_file(licenseplate_motion.jpg . COPYONLY)
-configure_file(text_defocus.jpg . COPYONLY)
-configure_file(text_motion.jpg . COPYONLY)
-
 add_executable(
     ${PROJECT_NAME}
     main.cpp
