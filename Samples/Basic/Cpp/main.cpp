@@ -35,11 +35,13 @@ Examples:
 
 constexpr auto winName = "deconvolution";
 
+constexpr int kKernelSize = 65;
+
 bool defocus = false;
-cv::Mat img;
+cv::Mat img_padded;
 cv::Mat img_dft;
 
-cv::Mat blur_edge(const cv::Mat& img, int d = 31) {
+cv::Mat blur_edge(const cv::Mat& img, int d = kKernelSize / 2) {
   const int w = img.cols;
   const int h = img.rows;
   cv::Mat img_pad;
@@ -61,7 +63,7 @@ cv::Mat blur_edge(const cv::Mat& img, int d = 31) {
   return result;
 }
 
-cv::Mat motion_kernel(float angle, int d, int sz = 65) {
+cv::Mat motion_kernel(float angle, int d, int sz = kKernelSize) {
   if (0 == d) {
     d = 1;
   }
@@ -78,7 +80,7 @@ cv::Mat motion_kernel(float angle, int d, int sz = 65) {
   return kern;
 }
 
-cv::Mat defocus_kernel(int d, int sz = 65) {
+cv::Mat defocus_kernel(int d, int sz = kKernelSize) {
   cv::Mat kern_int(sz, sz, CV_8U, cv::Scalar(0));
   cv::circle(kern_int, cv::Point(sz, sz), d, 255, -1, cv::LINE_AA, 1);
   cv::Mat kern;
@@ -99,7 +101,7 @@ void update(int, void*) {
 
   psf /= cv::sum(psf);
 
-  cv::Mat psf_pad(img.size(), img.type(), cv::Scalar(0));
+  cv::Mat psf_pad(img_padded.size(), img_padded.type(), cv::Scalar(0));
   const int kh = psf.rows;
   const int kw = psf.cols;
   psf.copyTo(psf_pad(cv::Rect(0, 0, kw, kh)));
@@ -123,7 +125,10 @@ void update(int, void*) {
   cv::Mat res;
   cv::idft(res_dft, res, cv::DFT_SCALE | cv::DFT_REAL_OUTPUT);
 
-  cv::imshow(winName, res);
+  const int width = img_padded.cols - 2 * kKernelSize;
+  const int height = img_padded.rows - 2 * kKernelSize;
+  cv::imshow(winName, res(cv::Rect(kKernelSize * 3 / 2, kKernelSize * 3 / 2,
+                                   width, height)));
 };
 
 int main(int argc, char** argv) {
@@ -153,13 +158,16 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  cv::Mat img;
   source.convertTo(img, CV_32F);
   img /= 255.0;
   cv::imshow("input", img);
 
   img = blur_edge(img);
+  cv::copyMakeBorder(img, img_padded, kKernelSize, kKernelSize, kKernelSize,
+                     kKernelSize, cv::BORDER_REPLICATE);
 
-  cv::dft(img, img_dft, cv::DFT_COMPLEX_OUTPUT);
+  cv::dft(img_padded, img_dft, cv::DFT_COMPLEX_OUTPUT);
 
   defocus = parser.has("circle");
 
