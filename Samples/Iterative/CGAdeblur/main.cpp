@@ -151,11 +151,6 @@ int main(int argc, char* argv[]) {
 
     cv::imshow("Deblurred", deblurredImage);
 
-    // Reblur
-    cv::filter2D(deblurredImage, differenceResidualImage, CV_32FC1, blurKernel);
-
-    cv::imshow("Reblurred", differenceResidualImage);
-
     char c = cv::waitKey(10);
     if (c == 27) break;
 

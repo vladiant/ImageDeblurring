@@ -67,6 +67,8 @@ int main(int argc, char* argv[]) {
 
   // initial approximation of the residual
   residualImage = blurredImage.clone();
+
+  // Normal blur.
   cv::filter2D(deblurredImage, residualImage, CV_32FC1, kernel);
   cv::subtract(blurredImage, residualImage, differenceResidualImage);
   cv::filter2D(differenceResidualImage, residualImage, CV_32FC1,
@@ -87,6 +89,8 @@ int main(int argc, char* argv[]) {
   // initial approximation of preconditioned blurred image
   blurredPreconditionedImage = preconditionedImage.clone();
   cv::filter2D(preconditionedImage, differenceResidualImage, CV_32FC1, kernel);
+
+  // Transposed blur.
   cv::filter2D(differenceResidualImage, blurredPreconditionedImage, CV_32FC1,
                flippedBlurKernel);
   // Add regularization
