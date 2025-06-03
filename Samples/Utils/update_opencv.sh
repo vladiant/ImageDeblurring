@@ -77,3 +77,6 @@ sed -i 's/CV_THRESH_BINARY/cv::THRESH_BINARY/g' $1
 
 sed -i 's/cvCreateTrackbar/cv::createTrackbar/g' $1
 sed -i 's/cvGetTrackbarPos/cv::getTrackbarPos/g' $1
+
+sed -i 's/cvCvtColor/cv::cvtColor/g' $1
+sed -i 's/CV_GRAY2BGR/cv::COLOR_GRAY2BGR/g' $1
