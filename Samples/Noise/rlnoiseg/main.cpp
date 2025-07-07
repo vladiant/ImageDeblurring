@@ -7,12 +7,15 @@
  * and noise is added
  */
 
-#include <cv.h>
-#include <highgui.h>
+#include <iostream>
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-#include "/home/users/vantonov/Work/libs/blurrf.h"
-#include "/home/users/vantonov/Work/libs/fdb.h"
-#include "/home/users/vantonov/Work/libs/noise.h"
+#include "blurrf.hpp"
+#include "fdb.hpp"
+#include "noise.hpp"
 
 using namespace std;
 
@@ -21,23 +24,24 @@ using namespace std;
 //  Poisson noise coefficient; Specle noise coefficient
 int pos_n1 = 0, pos_n2 = 0, pos_n3 = 0, pos_n4 = 0, pos_n5 = 0, pos_n6 = 0;
 
-void Ximgset(IplImage *imga)  // generates the image
+void Ximgset(cv::Mat &imga)  // generates the image
 {
-  cvZero(imga);
+  imga = 0;
   // rectangle coordinates
-  int i1 = round((imga->height) / 5), i2 = round(3 * (imga->width) / 5),
-      j1 = round((imga->height) / 5), j2 = round(3 * (imga->width) / 5);
+  int i1 = round((imga.rows) / 5), i2 = round(3 * (imga.cols) / 5),
+      j1 = round((imga.rows) / 5), j2 = round(3 * (imga.cols) / 5);
 
   // circle radius
-  int r = round(max(imga->height, imga->width) / 5);
+  int r = round(max(imga.rows, imga.cols) / 5);
 
   // draws rectangle
-  cvRectangle(imga, cvPoint(i1, j1), cvPoint(i2, j2), cvScalar(0.5), -1);
+  cv::rectangle(imga, cv::Point(i1, j1), cv::Point(i2, j2), cv::Scalar(0.5),
+                -1);
 
   // draws circle
-  cvCircle(imga,
-           cvPoint(round(5 * (imga->width) / 8), round(3 * (imga->height) / 5)),
-           r, cvScalar(1.0), -1);
+  cv::circle(imga,
+             cv::Point(round(5 * (imga.cols) / 8), round(3 * (imga.rows) / 5)),
+             r, cv::Scalar(1.0), -1);
 }
 
 /*
@@ -47,52 +51,52 @@ void Ximgset(IplImage *imga)  // generates the image
  * kernel is spatially dependent
  */
 
-void BlurrPBCsv(IplImage *imga, IplImage *imgb, IplImage *imgc, int fl = 0) {
+void BlurrPBCsv(cv::Mat &imga, cv::Mat &imgb, cv::Mat &imgc, int fl = 0) {
   float s1, s2, s3;
   int i, j;
 
-  for (int row = 0; row < imga->height; row++) {
+  for (int row = 0; row < imga.rows; row++) {
     // here the kernel is changed
-    cvSetZero(imgb);
+    imgb = 0;
     if (fl == 0)
-      ksetMoveXY(imgb, 5, 5);
+      ksetMoveXY(imgb, 5.0, 5.0);
     else
-      ksetMoveXY(imgb, -5, -5);
+      ksetMoveXY(imgb, -5.0, -5.0);
 
-    for (int col = 0; col < imga->width; col++) {
+    for (int col = 0; col < imga.cols; col++) {
       s2 = 0;
 
-      for (int row1 = 0; row1 < imgb->height; row1++) {
-        for (int col1 = 0; col1 < imgb->width; col1++) {
-          s1 = ((float *)(imgb->imageData + row1 * imgb->widthStep))[col1];
+      for (int row1 = 0; row1 < imgb.rows; row1++) {
+        for (int col1 = 0; col1 < imgb.cols; col1++) {
+          s1 = ((float *)(imgb.data + row1 * imgb.step))[col1];
 
-          if ((row - row1 + imgb->height / 2) >= 0) {
-            if ((row - row1 + imgb->height / 2) < (imga->height)) {
-              i = row - row1 + imgb->height / 2;
+          if ((row - row1 + imgb.rows / 2) >= 0) {
+            if ((row - row1 + imgb.rows / 2) < (imga.rows)) {
+              i = row - row1 + imgb.rows / 2;
             } else {
-              i = row - row1 + imgb->height / 2 - imga->height + 1;
+              i = row - row1 + imgb.rows / 2 - imga.rows + 1;
             }
 
           } else {
-            i = (row - row1 + imgb->height / 2) + imga->height - 1;
+            i = (row - row1 + imgb.rows / 2) + imga.rows - 1;
           }
 
-          if ((col - col1 + imgb->width / 2) >= 0) {
-            if ((col - col1 + imgb->width / 2) < (imga->width)) {
-              j = col - col1 + imgb->width / 2;
+          if ((col - col1 + imgb.cols / 2) >= 0) {
+            if ((col - col1 + imgb.cols / 2) < (imga.cols)) {
+              j = col - col1 + imgb.cols / 2;
             } else {
-              j = col - col1 + imgb->width / 2 - imga->width + 1;
+              j = col - col1 + imgb.cols / 2 - imga.cols + 1;
             }
 
           } else {
-            j = (col - col1 + imgb->width / 2) + imga->width - 1;
+            j = (col - col1 + imgb.cols / 2) + imga.cols - 1;
           }
 
-          s3 = ((float *)(imga->imageData + i * imga->widthStep))[j] * s1;
+          s3 = ((float *)(imga.data + i * imga.step))[j] * s1;
           s2 += s3;
         }
       }
-      ((float *)(imgc->imageData + row * imgc->widthStep))[col] = s2;
+      ((float *)(imgc.data + row * imgc.step))[col] = s2;
     }
   }
 }
@@ -101,20 +105,20 @@ void BlurrPBCsv(IplImage *imga, IplImage *imgb, IplImage *imgc, int fl = 0) {
  * Total variation calculation
  */
 
-float TotVar(IplImage *imga) {
-  float s1, s2, s3 = 0;
+float TotVar(cv::Mat &imga) {
+  float s1, s2, s = 0;
   int x1, x2, y1, y2;
 
-  for (int row = 0; row < imga->height; row++) {
-    for (int col = 0; col < imga->width; col++) {
-      if (row == (imga->height - 1)) {
+  for (int row = 0; row < imga.rows; row++) {
+    for (int col = 0; col < imga.cols; col++) {
+      if (row == (imga.rows - 1)) {
         y1 = row;
 
       } else {
         y1 = row + 1;
       }
 
-      if (col == (imga->width - 1)) {
+      if (col == (imga.cols - 1)) {
         x2 = col;
       } else {
         x2 = col + 1;
@@ -133,72 +137,69 @@ float TotVar(IplImage *imga) {
         x1 = col - 1;
       }
 
-      s1 = ((float *)(imga->imageData + row * imga->widthStep))[x2] -
-           ((float *)(imga->imageData + row * imga->widthStep))[x1];
-      s2 = ((float *)(imga->imageData + y2 * imga->widthStep))[col] -
-           ((float *)(imga->imageData + y1 * imga->widthStep))[col];
-      s3 += sqrt(s1 * s1 + s2 * s2);
+      s1 = ((float *)(imga.data + row * imga.step))[x2] -
+           ((float *)(imga.data + row * imga.step))[x1];
+      s2 = ((float *)(imga.data + y2 * imga.step))[col] -
+           ((float *)(imga.data + y1 * imga.step))[col];
+      s += abs(s1) + abs(s2);
     }
   }
-  return (s3);
+  return (s);
 }
 
-float NoiseDev(const IplImage *imga) {
-  IplImage *imgd = cvCreateImage(cvGetSize(imga), IPL_DEPTH_32F, 1);
+float NoiseDev(const cv::Mat &imga) {
+  cv::Mat imgd = cv::Mat(cv::Size(imga.cols, imga.rows), CV_32FC1);
   float re, im, shar, sum;
 
   shar = 0.8;
   sum = 0.0;
-  cvScale(imga, imgd, 1.0 / 255.0);
-  cvDFT(imgd, imgd, CV_DXT_FORWARD, imgd->height);
-  for (int row = int(shar * imgd->height / 2); row < (imgd->height / 2) - 1;
-       row++) {
-    for (int col = int(shar * imgd->width / 2); col < (imgd->width / 2) - 1;
+  imgd = imga / 255.0;
+  cv::dft(imgd, imgd);
+  for (int row = int(shar * imgd.rows / 2); row < (imgd.rows / 2) - 1; row++) {
+    for (int col = int(shar * imgd.cols / 2); col < (imgd.cols / 2) - 1;
          col++) {
       FGet2D(imgd, col, row, &re, &im);
       sum += sqrt(re * re + im * im);
     }
   }
-  sum /= ((imgd->height / 2) - int(shar * imgd->height / 2)) *
-         ((imgd->width / 2) - int(shar * imgd->width / 2)) *
-         sqrt((imgd->height) * (imgd->width));
-  cvReleaseImage(&imgd);
+  sum /= ((imgd.rows / 2) - int(shar * imgd.rows / 2)) *
+         ((imgd.cols / 2) - int(shar * imgd.cols / 2)) *
+         sqrt((imgd.rows) * (imgd.cols));
   return (sum);
 }
 
 // initial declaration of trackbar reading function
-void GetNois(int pos);
+void GetNois(int pos, void *);
 
 int main(int argc, char *argv[]) {
-  IplImage *img, *imgi, *img1, *img2, *img3, *img4, *img5,
-      *imgl;  // initial, blurred, kernel, deblurred and noise image, laplace
+  cv::Mat img, imgi, img1, img2, img3, img4, img5,
+      imgl;  // initial, blurred, kernel, deblurred and noise image, laplace
   int m = 320, n = 240, r = 40,
-      ksize;         // image dimensions and radius of blurring, kernel size
-  IplImage *kernel;  // kernel for blurring
-  int it;            // iteration counter
+      ksize;       // image dimensions and radius of blurring, kernel size
+  cv::Mat kernel;  // kernel for blurring
+  int it;          // iteration counter
   const int x1 = 5, y1 = 5;                 // Define vector of motion blurr
   float norm, norm1, norm2, oldnorm, delt;  // norm of the images
   float lambda, gi;                         // regularization parameters
 
   // creates initial image
   if ((argc == 2) &&
-      ((imgi = cvLoadImage(argv[1], CV_LOAD_IMAGE_GRAYSCALE)) != 0)) {
-    img = cvCreateImage(cvGetSize(imgi), IPL_DEPTH_32F, 1);
-    cvScale(imgi, img, 1.0 / 255.0);
+      (!(imgi = cv::imread(argv[1], cv::IMREAD_GRAYSCALE)).empty())) {
+    img = cv::Mat(cv::Size(imgi.cols, imgi.rows), CV_32FC1);
+    imgi.convertTo(img, CV_32F, 1.0 / 255.0);
   } else {
-    img = cvCreateImage(cvSize(m, n), IPL_DEPTH_32F, 1);
+    img = cv::Mat(cv::Size(m, n), CV_32FC1);
     Ximgset(img);
   }
 
-  img1 = cvCloneImage(img);
-  imgl = cvCloneImage(img);
+  img1 = img.clone();
+  imgl = img.clone();
 
   // createst simple kernel for motion
   ksize = max(abs(x1), abs(y1));
 
   // creates blurring kernel
-  kernel =
-      cvCreateImage(cvSize(2 * ksize + 1, 2 * ksize + 1), IPL_DEPTH_32F, 1);
+  kernel = cv::Mat(cv::Size(2 * ksize + 1, 2 * ksize + 1), CV_32FC1);
 
   // motion blurr
   // ksetMoveXY(kernel,x1,y1);
@@ -207,59 +208,60 @@ int main(int argc, char *argv[]) {
   BlurrPBCsv(img, kernel, img1);
 
   // displays image
-  cvNamedWindow("Initial", CV_WINDOW_AUTOSIZE);
-  cvShowImage("Initial", img);
-  cvNamedWindow("Blurred", CV_WINDOW_AUTOSIZE);
+  cv::namedWindow("Initial", cv::WINDOW_AUTOSIZE);
+  cv::imshow("Initial", img);
+  cv::namedWindow("Blurred", cv::WINDOW_AUTOSIZE);
 
-  cvNamedWindow("Motion Blurr", CV_WINDOW_NORMAL);
-  cvResizeWindow("Motion Blurr", 600, 1);
-  cvCreateTrackbar("Gaussian noise dev., % ", "Motion Blurr", &pos_n1, 100,
-                   GetNois);
-  cvCreateTrackbar("Gaussian noise mean, % ", "Motion Blurr", &pos_n2, 100,
-                   GetNois);
-  cvCreateTrackbar("Uniform noise dev, % ", "Motion Blurr", &pos_n3, 100,
-                   GetNois);
-  cvCreateTrackbar("Bad Pixels, o/oo ", "Motion Blurr", &pos_n4, 100, GetNois);
-  cvCreateTrackbar("Poisson noise coeff.", "Motion Blurr", &pos_n5, 500,
-                   GetNois);
-  cvCreateTrackbar("Speckle noise coeff.", "Motion Blurr", &pos_n6, 100,
-                   GetNois);
+  cv::namedWindow("Motion Blurr", cv::WINDOW_NORMAL);
+  cv::resizeWindow("Motion Blurr", 600, 1);
+  cv::createTrackbar("Gaussian noise dev., % ", "Motion Blurr", &pos_n1, 100,
+                     GetNois);
+  cv::createTrackbar("Gaussian noise mean, % ", "Motion Blurr", &pos_n2, 100,
+                     GetNois);
+  cv::createTrackbar("Uniform noise dev, % ", "Motion Blurr", &pos_n3, 100,
+                     GetNois);
+  cv::createTrackbar("Bad Pixels, o/oo ", "Motion Blurr", &pos_n4, 100,
+                     GetNois);
+  cv::createTrackbar("Poisson noise coeff.", "Motion Blurr", &pos_n5, 500,
+                     GetNois);
+  cv::createTrackbar("Speckle noise coeff.", "Motion Blurr", &pos_n6, 100,
+                     GetNois);
 
   // set the noise
   do {
-    cvCopy(img1, imgl);
+    img1.copyTo(imgl);
     Gnoise(imgl, pos_n2 / 100.0, pos_n1 / 100.0);
     Unoise(imgl, pos_n3 / 100.0, 1.0);
     SPnoise(imgl, pos_n4 / 2000.0);
     if (pos_n5 != 0) Pnoise(imgl, pos_n5);
     SPEnoise(imgl, pos_n6 / 100.0);
-    cvShowImage("Blurred", imgl);
+    cv::imshow("Blurred", imgl);
 
-    char c = cvWaitKey(10);
-    if (c == 10) break;  // press Enter to continue
+    char c = cv::waitKey(10);
+    if (c == 27) break;  // press Enter to continue
   } while (1);
 
-  cvCopy(imgl, img1);
+  imgl.copyTo(img1);
 
   // initial parameter of the norm
-  gi = 2 * cvNorm(img1, 0, CV_L2);
+  gi = 2 * cv::norm(img1, cv::NORM_L2);
 
   // displays image
-  cvShowImage("Blurred", img1);
-  cvNamedWindow("Deblurred", CV_WINDOW_AUTOSIZE);
+  cv::imshow("Blurred", img1);
+  cv::namedWindow("Deblurred", cv::WINDOW_AUTOSIZE);
 
   // Fourier derivation of the kernel
-  img2 = cvCloneImage(img1);  // old image
-  img3 = cvCloneImage(img1);  // new image
-  img4 = cvCloneImage(img1);  // blurred old image
-  img5 = cvCloneImage(img1);
+  img2 = img1.clone();  // old image
+  img3 = img1.clone();  // new image
+  img4 = img1.clone();  // blurred old image
+  img5 = img1.clone();
 
   BlurrPBCsv(img2, kernel, img4);
-  // norm2=TotVar(img2)/((img2->width)*(img2->height));
-  cvLaplace(img2, imgl);
-  norm2 = cvNorm(imgl, 0, CV_L2) / ((img2->width) * (img2->height));
-  cvSub(img4, img1, img5);
-  norm1 = cvNorm(img5, 0, CV_L2) / ((img2->width) * (img2->height));
+  // norm2=TotVar(img2)/((img2.cols)*(img2.rows));
+  cv::Laplacian(img2, imgl, -1);
+  norm2 = cv::norm(imgl, cv::NORM_L2) / ((img2.cols) * (img2.rows));
+  cv::subtract(img4, img1, img5);
+  norm1 = cv::norm(img5, cv::NORM_L2) / ((img2.cols) * (img2.rows));
   lambda = norm1 / (gi - norm2);
   cout << "Initial lambda= " << lambda << '\n';
   oldnorm = norm1 + lambda * norm2 + 1;
@@ -270,11 +272,11 @@ int main(int argc, char *argv[]) {
     // Mk=H*Ik
     BlurrPBCsv(img2, kernel, img4);
 
-    // norm2=TotVar(img2)/((img2->width)*(img2->height));
-    cvLaplace(img2, imgl);
-    norm2 = cvNorm(imgl, 0, CV_L2) / ((img2->width) * (img2->height));
-    cvSub(img4, img1, img5);  // r=Ax-b
-    norm1 = cvNorm(img5, 0, CV_L2) / ((img2->width) * (img2->height));
+    // norm2=TotVar(img2)/((img2.cols)*(img2.rows));
+    cv::Laplacian(img2, imgl, -1);
+    norm2 = cv::norm(imgl, cv::NORM_L2) / ((img2.cols) * (img2.rows));
+    cv::subtract(img4, img1, img5);  // r=Ax-b
+    norm1 = cv::norm(img5, cv::NORM_L2) / ((img2.cols) * (img2.rows));
     lambda = norm1 / (gi - norm2);
 
     // Ht*(Mk)
@@ -282,22 +284,22 @@ int main(int argc, char *argv[]) {
     // Ht*Ib
     BlurrPBCsv(img1, kernel, img4);
     // Ht*Ib/(Ht*(Mk))
-    cvDiv(img4, img5, img4);
+    cv::divide(img4, img5, img4);
     // pixel by pixel multiply
-    cvMul(img4, img2, img3);
+    cv::multiply(img4, img2, img3);
 
     // additional part to add coefficient
-    cvSub(img3, img2, img3);
-    cvAddWeighted(img2, 1.0, img3, 1.0, 0.0, img3);
+    cv::subtract(img3, img2, img3);
+    cv::addWeighted(img2, 1.0, img3, 1.0, 0.0, img3);
 
     norm = norm1 + lambda * norm2;
     delt = oldnorm - norm;
     oldnorm = norm;
 
-    img2 = cvCloneImage(img3);
+    img2 = img3.clone();
 
-    cvShowImage("Deblurred", img3);
-    char c = cvWaitKey(10);
+    cv::imshow("Deblurred", img3);
+    char c = cv::waitKey(10);
 
     if (c == 27) break;
 
@@ -306,26 +308,21 @@ int main(int argc, char *argv[]) {
          << "  " << lambda << '\n';
   } while (abs(delt) > 1e-7);
 
-  cvWaitKey(0);
+  cv::waitKey(0);
 
-  cvDestroyWindow("Initial");
-  cvDestroyWindow("Blurred");
-  cvDestroyWindow("Deblurred");
-  cvDestroyWindow("Deblurred");
+  cv::destroyWindow("Initial");
+  cv::destroyWindow("Blurred");
+  cv::destroyWindow("Deblurred");
+  cv::destroyWindow("Deblurred");
 
-  cvReleaseImage(&img);
-  cvReleaseImage(&img1);
-  cvReleaseImage(&img2);
-  cvReleaseImage(&img3);
-  cvReleaseImage(&kernel);
   return 0;
 }
 
-void GetNois(int pos) {
-  pos_n1 = cvGetTrackbarPos("Gaussian noise dev., % ", "Motion Blurr");
-  pos_n2 = cvGetTrackbarPos("Gaussian noise mean, % ", "Motion Blurr");
-  pos_n3 = cvGetTrackbarPos("Uniform noise dev, % ", "Motion Blurr");
-  pos_n4 = cvGetTrackbarPos("Bad Pixels, o/oo ", "Motion Blurr");
-  pos_n5 = cvGetTrackbarPos("Poisson noise coeff.", "Motion Blurr");
-  pos_n6 = cvGetTrackbarPos("Speckle noise coeff.", "Motion Blurr");
+void GetNois(int pos, void *) {
+  pos_n1 = cv::getTrackbarPos("Gaussian noise dev., % ", "Motion Blurr");
+  pos_n2 = cv::getTrackbarPos("Gaussian noise mean, % ", "Motion Blurr");
+  pos_n3 = cv::getTrackbarPos("Uniform noise dev, % ", "Motion Blurr");
+  pos_n4 = cv::getTrackbarPos("Bad Pixels, o/oo ", "Motion Blurr");
+  pos_n5 = cv::getTrackbarPos("Poisson noise coeff.", "Motion Blurr");
+  pos_n6 = cv::getTrackbarPos("Speckle noise coeff.", "Motion Blurr");
 }
