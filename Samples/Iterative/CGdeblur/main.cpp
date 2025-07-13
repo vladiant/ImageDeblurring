@@ -15,6 +15,8 @@ int main(int argc, char* argv[]) {
   cv::Mat initialImage(480, 640, CV_8UC1);
   createTestImage(initialImage);
 
+  // cv::imwrite("initial_image.png", initialImage);
+
   cv::Mat blurKernel(13, 13, CV_32FC1);
   //	blurKernel = cv::Scalar(1.0 / (blurKernel.rows * blurKernel.cols));
 
@@ -25,6 +27,8 @@ int main(int argc, char* argv[]) {
   blurKernel = blurKernel * (1.0 / cv::sum(blurKernel).val[0]);
 
   //	cv::Mat blurKernel = cv::getGaussianKernel(13, 3, CV_32F);
+
+  // cv::imwrite("blur_kernel.tiff", blurKernel);
 
   cv::Mat flippedBlurKernel;
   cv::flip(blurKernel, flippedBlurKernel, -1);
@@ -50,6 +54,13 @@ int main(int argc, char* argv[]) {
 
   blurredImageU.convertTo(blurredImage, CV_32FC1, 1.0 / 255.0, 0.0);
   blurKernel.copyTo(kernel);
+
+  // cv::imwrite("blurred_image_noise.tiff", blurredImage);
+
+  // cv::Mat blurredImageColor;
+  // cv::merge(std::vector{blurredImage, blurredImage, blurredImage},
+  // blurredImageColor); cv::imwrite("blurred_image_color_noise.tiff",
+  // blurredImageColor);
 
   cv::Mat deblurredImage;              // deblurred image
   cv::Mat residualImage;               // residual image
@@ -148,8 +159,8 @@ int main(int argc, char* argv[]) {
                  flippedBlurKernel);
     // Add regularization
     //		cv::Laplacian(preconditionedImage, differenceResidualImage,
-    //CV_32FC1); 		cv::Laplacian(differenceResidualImage, regularizationImage,
-    //CV_32FC1);
+    // CV_32FC1); 		cv::Laplacian(differenceResidualImage,
+    // regularizationImage, CV_32FC1);
     preconditionedImage.copyTo(regularizationImage);
     cv::addWeighted(regularizationImage, regularizationWeight,
                     blurredPreconditionedImage, 1.0, 0.0,
@@ -187,6 +198,8 @@ int main(int argc, char* argv[]) {
 
   cv::namedWindow(deblurredImageWindowName, cv::WINDOW_AUTOSIZE);
   cv::imshow(deblurredImageWindowName, restoredImage);
+
+  // cv::imwrite("deblurred_image.tiff", bestRestoredImage);
 
   cv::waitKey(0);
 
