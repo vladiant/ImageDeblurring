@@ -102,9 +102,21 @@ Mat convolve2D(const Mat& img, const Mat& kernel) {
 
 // Correlate: convolve with flipped kernel
 Mat correlate2D(const Mat& img, const Mat& kernel) {
-  Mat flipped;
-  flip(kernel, flipped, -1);
-  return convolve2D(img, flipped);
+  // Mat flipped;
+  // flip(kernel, flipped, -1);
+  // return convolve2D(img, flipped);
+
+  Mat result;
+
+  cv::Mat otf = psf2otf(kernel, img.size());
+  cv::Mat imgDFT;
+  cv::dft(img, imgDFT, cv::DFT_COMPLEX_OUTPUT);
+  cv::Mat resultDFT;
+  cv::mulSpectrums(imgDFT, otf, resultDFT, 0, true);
+  cv::dft(resultDFT, result,
+          cv::DFT_INVERSE | cv::DFT_REAL_OUTPUT | cv::DFT_SCALE);
+
+  return result;
 }
 
 // Lucy-Richardson deconvolution
