@@ -131,14 +131,15 @@ int main(int argc, char* argv[]) {
     //			break;
     //
     //			std::cout << "updateWeight: " << updateWeight <<
-    //std::endl; 			std::cout << "Reinitialize CG search!" << std::endl;
-    //			updateWeight = 0;
+    // std::endl; 			std::cout << "Reinitialize CG search!"
+    // << std::endl; 			updateWeight = 0;
     //
     //			cv::filter2D(deblurredImage, residualImage, CV_32FC1,
-    //kernel); 			cv::subtract(blurredImage, residualImage, residualImage);
+    // kernel); 			cv::subtract(blurredImage,
+    // residualImage, residualImage);
     //
     //			cv::filter2D(residualImage, preconditionedResidualImage,
-    //CV_32FC1, 					kernel.t());
+    // CV_32FC1, 					kernel.t());
     //		}
 
     cv::addWeighted(preconditionedResidualImage, 1.0, preconditionedImage,

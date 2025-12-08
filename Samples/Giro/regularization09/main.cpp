@@ -134,8 +134,8 @@ float NoiseDev(const cv::Mat &imga) {
  */
 
 void BlurReBC(cv::Mat &imga, int bsamples, float *timeb, float *Thetabx,
-                float *Thetaby, float *Thetabz, float time_capture_start,
-                cv::Mat &imgc1, int fl = 0) {
+              float *Thetaby, float *Thetabz, float time_capture_start,
+              cv::Mat &imgc1, int fl = 0) {
   float s2, s3;
   int i, j;
 

@@ -14,7 +14,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-
 using namespace std;
 
 void Ximgset(cv::Mat &imga)  // generates the image

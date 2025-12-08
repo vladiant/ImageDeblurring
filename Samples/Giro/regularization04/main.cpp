@@ -375,7 +375,7 @@ void Sset(cv::Mat &imga, cv::Mat &imgf, float so2 = 1e-6) {
     for (int col = 0; col < imga.cols; col++, its++) {
       s1 = 0;
       s2 = 0;
-      its=0;
+      its = 0;
       for (int row1 = -y1; row1 < y1 + 1; row1++) {
         for (int col1 = -x1; col1 < x1 + 1; col1++) {
           // replicate boundary conditions

@@ -7,11 +7,11 @@
  * Code taken from parsergyro.cpp program
  */
 
+#include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <iostream>
 
 using namespace std;
 
@@ -298,12 +298,11 @@ int main(int argc, char *argv[]) {
   }
 
   // image processing
-  cv::Mat imgi =
-      cv::imread(argv[1], cv::IMREAD_ANYDEPTH | cv::IMREAD_ANYCOLOR);
+  cv::Mat imgi = cv::imread(argv[1], cv::IMREAD_ANYDEPTH | cv::IMREAD_ANYCOLOR);
   cv::Mat imgk = cv::Mat(cv::Size(imgi.cols, imgi.rows), CV_8UC1);
 
   int imw = imgi.cols, imh = imgi.rows;  // image width, image height
-  float u0 = imw / 2.0, v0 = imh / 2.0;       // principal point in pixels
+  float u0 = imw / 2.0, v0 = imh / 2.0;  // principal point in pixels
   int r0x = 2031, r0y = 1641;  // pixel where the movement points will be drawn
   float x1, y1;                // current coordinates
 
@@ -512,14 +511,11 @@ int main(int argc, char *argv[]) {
       // cout << xd << "  " << yd << '\n';
       ((float *)(kernel.data + int(yd) * (kernel.step)))[int(xd)] +=
           (int(xd) - xd + 1) * (int(yd) - yd + 1) * step;
-      ((float *)(kernel.data +
-                 int(yd + 1) * (kernel.step)))[int(xd)] +=
+      ((float *)(kernel.data + int(yd + 1) * (kernel.step)))[int(xd)] +=
           (int(xd) - xd + 1) * (yd - int(yd)) * step;
-      ((float *)(kernel.data +
-                 int(yd) * (kernel.step)))[int(xd + 1)] +=
+      ((float *)(kernel.data + int(yd) * (kernel.step)))[int(xd + 1)] +=
           (xd - int(xd)) * (int(yd) - yd + 1) * step;
-      ((float *)(kernel.data +
-                 int(yd + 1) * (kernel.step)))[int(xd + 1)] +=
+      ((float *)(kernel.data + int(yd + 1) * (kernel.step)))[int(xd + 1)] +=
           (xd - int(xd)) * (yd - int(yd)) * step;
     }
   }
@@ -527,14 +523,12 @@ int main(int argc, char *argv[]) {
   float kernelsum = 0;
   for (int row = 0; row < kernel.rows; row++)
     for (int col = 0; col < kernel.cols; col++)
-      kernelsum +=
-          ((float *)(kernel.data + row * (kernel.step)))[col];
+      kernelsum += ((float *)(kernel.data + row * (kernel.step)))[col];
 
   // normalize
   for (int row = 0; row < kernel.rows; row++)
     for (int col = 0; col < kernel.cols; col++)
-      ((float *)(kernel.data + row * (kernel.step)))[col] /=
-          kernelsum;
+      ((float *)(kernel.data + row * (kernel.step)))[col] /= kernelsum;
 
   // cout << "kernelsum:  " << kernelsum << '\n';
 
@@ -560,16 +554,13 @@ int main(int argc, char *argv[]) {
   kernelsum = 0;
   for (int row = 0; row < kernel.rows; row++)
     for (int col = 0; col < kernel.cols; col++)
-      if (kernelsum <
-          ((float *)(kernel.data + row * (kernel.step)))[col])
-        kernelsum =
-            ((float *)(kernel.data + row * (kernel.step)))[col];
+      if (kernelsum < ((float *)(kernel.data + row * (kernel.step)))[col])
+        kernelsum = ((float *)(kernel.data + row * (kernel.step)))[col];
 
   // normalize
   for (int row = 0; row < kernel.rows; row++)
     for (int col = 0; col < kernel.cols; col++)
-      ((float *)(kernel.data + row * (kernel.step)))[col] /=
-          kernelsum / 255;
+      ((float *)(kernel.data + row * (kernel.step)))[col] /= kernelsum / 255;
 
   cv::imwrite("kernel.png", kernel);
 

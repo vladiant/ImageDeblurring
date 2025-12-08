@@ -231,8 +231,7 @@ void Rset(cv::Mat &imga, cv::Mat &imgf) {
   for (int row = 0; row < imga.rows; row++) {
     for (int col = 0; col < imga.cols; col++) {
       float a1 = ((float *)(imgf.data + row * imgf.step))[col];
-      ((float *)(imgf.data + row * imgf.step))[col] =
-          pow((a1 / smax), v);
+      ((float *)(imgf.data + row * imgf.step))[col] = pow((a1 / smax), v);
     }
   }
 }

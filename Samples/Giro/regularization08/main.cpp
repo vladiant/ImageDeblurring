@@ -389,7 +389,6 @@ void CGDFilter(cv::Mat &imgb, int bsamples, float *timeb, float *Thetabx,
   // add regularization
   cv::Laplacian(imgb, imgl, -1);
 
-
   // paper based estimation of alpha, initial part
   gam = 0;
   for (int row = 0; row < imgb.rows; row++) {
